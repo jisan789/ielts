@@ -1,0 +1,7 @@
+{
+  "name": "IELTS Speaking Companion",
+  "description": "Your personal AI IELTS examiner. Practice Speaking Parts 1, 2, and 3 with real-time feedback on Fluency, Vocabulary, Grammar, and Pronunciation.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
