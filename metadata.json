@@ -1,7 +1,5 @@
 {
-  "name": "IELTS Speaking Companion",
-  "description": "Your personal AI IELTS examiner. Practice Speaking Parts 1, 2, and 3 with real-time feedback on Fluency, Vocabulary, Grammar, and Pronunciation.",
-  "requestFramePermissions": [
-    "microphone"
-  ]
+  "name": "Gibbs Forex Signal",
+  "description": "A professional, minimalist Forex signal dashboard featuring real-time signal alerts, performance analytics, and trade history tracking.",
+  "requestFramePermissions": []
 }

@@ -1,134 +1,205 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { TrendingUp, Activity, Zap, ChevronRight, BarChart3, Globe, Clock } from 'lucide-react';
+import { MOCK_SIGNALS } from '../constants';
 
-import React from 'react';
-import { UserProfile, PersonaType, SessionMode } from '../types';
-import { PERSONA_CONFIGS } from '../constants';
+const Dashboard: React.FC<{ onViewChange: (view: any) => void }> = ({ onViewChange }) => {
+  const activeSignals = MOCK_SIGNALS.filter(s => s.status === 'ACTIVE').length;
+  
+  // Dynamic Time & Session State
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-interface DashboardProps {
-  profile: UserProfile;
-  onStartChat: (mode: SessionMode) => void;
-  onOpenFeedback: () => void;
-}
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-const Dashboard: React.FC<DashboardProps> = ({ profile, onStartChat, onOpenFeedback }) => {
-  const persona = PERSONA_CONFIGS[PersonaType.EMMA];
+  // Calculate Forex Session based on UTC Hours
+  const sessionName = useMemo(() => {
+    const utcHour = currentTime.getUTCHours();
+    // Weekends check (Day 0 is Sunday, 6 is Saturday)
+    const day = currentTime.getUTCDay();
+    if (day === 0 || day === 6) return 'Market Closed';
+
+    const activeSessions: string[] = [];
+
+    // Approximate UTC Sessions
+    // Sydney: 21:00 - 06:00
+    if (utcHour >= 21 || utcHour < 6) activeSessions.push('Sydney');
+    // Tokyo: 00:00 - 09:00
+    if (utcHour >= 0 && utcHour < 9) activeSessions.push('Tokyo');
+    // London: 07:00 - 16:00
+    if (utcHour >= 7 && utcHour < 16) activeSessions.push('London');
+    // New York: 12:00 - 21:00
+    if (utcHour >= 12 && utcHour < 21) activeSessions.push('New York');
+
+    if (activeSessions.length === 0) return 'Quiet Session';
+    
+    // Handle specific overlaps cleanly
+    if (activeSessions.includes('London') && activeSessions.includes('New York')) return 'London / NY Session';
+    if (activeSessions.includes('Tokyo') && activeSessions.includes('London')) return 'Tokyo / London Session';
+    if (activeSessions.includes('Sydney') && activeSessions.includes('Tokyo')) return 'Sydney / Tokyo Session';
+
+    return `${activeSessions[0]} Session`;
+  }, [currentTime]);
+
+  const localTime = currentTime.toLocaleTimeString([], { hour12: false });
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12 space-y-12 animate-in fade-in duration-700">
-      {/* Header section */}
-      <div className="text-center bg-white border border-slate-200 p-10 rounded-[2rem] shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-        <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-2">
-          IELTS Prep, {profile.name} <span className="inline-block hover:animate-spin origin-bottom-right cursor-default">👋</span>
-        </h1>
-        <p className="text-slate-500 text-lg md:text-xl font-medium">Choose your mode to begin.</p>
+    <div className="space-y-6 md:space-y-8 animate-fade-in">
+      {/* Mobile Header (Hidden on Desktop) */}
+      <div className="md:hidden flex justify-between items-center pt-2 px-1">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-white">Gibbs<span className="text-indigo-500">.</span></h1>
+        </div>
+        <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 overflow-hidden">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-[10px] font-bold">
+            TR
+          </div>
+        </div>
       </div>
 
-      {/* Mode Selection Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Desktop Header */}
+      <div className="hidden md:flex justify-between items-end border-b border-white/5 pb-6">
+        <div>
+           <h2 className="text-3xl font-bold text-white">Dashboard</h2>
+           <p className="text-slate-500 mt-1">Welcome back, here is your market overview.</p>
+        </div>
+        <div className="flex gap-3">
+           <div className="px-4 py-2 rounded-lg bg-[#121214] border border-white/5 flex items-center gap-2 text-sm text-slate-400">
+              <Globe size={14} /> {sessionName}
+           </div>
+           <div className="px-4 py-2 rounded-lg bg-[#121214] border border-white/5 flex items-center gap-2 text-sm text-indigo-400 font-mono">
+              <Clock size={14} /> {localTime}
+           </div>
+        </div>
+      </div>
+
+      {/* Grid Layout for Top Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Practice Mode Card */}
-        <div 
-          onClick={() => onStartChat(SessionMode.PRACTICE)}
-          className="group relative cursor-pointer overflow-hidden bg-white hover:bg-indigo-50/50 rounded-[2.5rem] p-8 md:p-10 border border-slate-100 hover:border-indigo-200 transition-all duration-300 shadow-xl shadow-slate-200/50 hover:shadow-indigo-200/40 active:scale-[0.98]"
-        >
-          {/* Decor */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-100/40 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-indigo-200/40 transition-colors"></div>
+        {/* Main Hero Card */}
+        <div className="lg:col-span-2 relative w-full">
+          <div className="absolute top-4 left-4 right-4 h-full bg-indigo-600/20 blur-3xl rounded-full -z-10"></div>
           
-          <div className="relative z-10 flex flex-col h-full items-start">
-            <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-3xl shadow-sm mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-              <i className="fa-solid fa-graduation-cap"></i>
-            </div>
-            
-            <div className="mb-auto">
-              <div className="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg text-[10px] font-black tracking-widest uppercase mb-3">
-                Beginner Friendly
-              </div>
-              <h2 className="text-3xl font-black text-slate-900 leading-tight mb-3 group-hover:text-indigo-900 transition-colors">Practice Mode</h2>
-              <p className="text-slate-500 text-sm leading-relaxed font-medium">
-                Relaxed environment. Get immediate feedback, corrections, and tips from {persona.name}. Perfect for improving specific skills.
-              </p>
+          <div className="matte-card rounded-[2rem] p-6 md:p-8 overflow-hidden relative h-full flex flex-col justify-between">
+            <div className="absolute top-0 right-0 p-6 opacity-10 md:opacity-20 pointer-events-none">
+              <BarChart3 size={120} className="text-white transform rotate-12 translate-x-4 -translate-y-4" />
             </div>
 
-            <div className="mt-8 flex items-center text-indigo-600 font-bold text-sm bg-indigo-50 px-4 py-2 rounded-full group-hover:bg-indigo-600 group-hover:text-white transition-all">
-              <span>Start Practice</span>
-              <i className="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+            <div className="relative z-10">
+              <div className="flex items-center space-x-2 mb-6">
+                <span className="px-3 py-1 rounded-md bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Pro Account
+                </span>
+              </div>
+              
+              <div className="space-y-2 mb-8">
+                <p className="text-slate-400 text-sm font-medium">Monthly Win Rate</p>
+                <div className="flex items-end gap-4">
+                  <span className="text-5xl md:text-7xl font-bold text-white tracking-tighter">78<span className="text-indigo-500">%</span></span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 max-w-md">
+                <div className="bg-white/5 rounded-xl p-4 border border-white/5 backdrop-blur-sm transition-transform hover:scale-105">
+                  <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Active Signals</p>
+                  <p className="text-2xl font-bold text-white">{activeSignals}</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/5 backdrop-blur-sm transition-transform hover:scale-105">
+                  <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Total Pips</p>
+                  <p className="text-2xl font-bold text-emerald-400">+480</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Exam Mode Card */}
-        <div 
-          onClick={() => onStartChat(SessionMode.EXAM)}
-          className="group relative cursor-pointer overflow-hidden bg-white hover:bg-rose-50/50 rounded-[2.5rem] p-8 md:p-10 border border-slate-100 hover:border-rose-200 transition-all duration-300 shadow-xl shadow-slate-200/50 hover:shadow-rose-200/40 active:scale-[0.98]"
-        >
-          {/* Decor */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-rose-100/40 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-rose-200/40 transition-colors"></div>
-          
-          <div className="relative z-10 flex flex-col h-full items-start">
-            <div className="w-20 h-20 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center text-3xl shadow-sm mb-6 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
-              <i className="fa-solid fa-stopwatch"></i>
-            </div>
-            
-            <div className="mb-auto">
-              <div className="inline-block px-3 py-1 bg-rose-100 text-rose-700 rounded-lg text-[10px] font-black tracking-widest uppercase mb-3">
-                Real Simulation
+        {/* Secondary Stats / Market Status (Visible on Desktop as Card) */}
+        <div className="hidden lg:flex flex-col gap-6">
+           <div className="matte-card rounded-[2rem] p-6 flex-1 flex flex-col justify-center items-center text-center relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <Activity size={48} className="text-indigo-500 mb-4" />
+              <h3 className="text-xl font-bold text-white">Market Volatility</h3>
+              <p className="text-sm text-slate-400 mt-2">High impact news expected in 2 hours. Trade with caution.</p>
+           </div>
+           <div className="matte-card rounded-[2rem] p-6 flex-1 flex flex-col justify-center">
+              <h3 className="text-lg font-bold text-white mb-4">Quick Actions</h3>
+              <div className="grid grid-cols-2 gap-3">
+                 <button onClick={() => onViewChange('signals')} className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-xs font-bold text-slate-300 transition-colors">
+                    View Signals
+                 </button>
+                 <button className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-xs font-bold text-slate-300 transition-colors">
+                    History
+                 </button>
               </div>
-              <h2 className="text-3xl font-black text-slate-900 leading-tight mb-3 group-hover:text-rose-900 transition-colors">Mock Exam</h2>
-              <p className="text-slate-500 text-sm leading-relaxed font-medium">
-                Strict conditions. No interruptions or immediate corrections. Simulates the real IELTS test pressure.
-              </p>
-            </div>
-
-            <div className="mt-8 flex items-center text-rose-600 font-bold text-sm bg-rose-50 px-4 py-2 rounded-full group-hover:bg-rose-600 group-hover:text-white transition-all">
-              <span>Start Exam</span>
-              <i className="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-            </div>
-          </div>
+           </div>
         </div>
 
       </div>
 
-      {/* Enhanced Feedback Banner */}
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 shadow-2xl shadow-slate-900/20 group">
-        {/* Abstract Background Shapes */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600 rounded-full blur-[100px] opacity-40 -translate-y-1/2 translate-x-1/3"></div>
-        <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-purple-600 rounded-full blur-[80px] opacity-30 translate-y-1/3 translate-x-1/4"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900 to-transparent z-0"></div>
-
-        <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
-          <div className="space-y-4 max-w-xl">
-             <div className="inline-flex items-center space-x-2.5 text-indigo-300 text-[11px] font-black uppercase tracking-[0.2em] mb-1">
-                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse shadow-[0_0_10px_rgba(129,140,248,0.5)]"></span>
-                <span>We Value Your Input</span>
-             </div>
-             
-             <h3 className="text-3xl md:text-4xl font-black leading-tight text-white tracking-tight">
-               Help improve this AI?
-             </h3>
-             
-             <p className="text-slate-400 text-base md:text-lg font-medium leading-relaxed max-w-md mx-auto md:mx-0">
-               Found a bug or have a feature request for Jisan? Send it directly to the developer to help make this tool better.
-             </p>
+      {/* Market Status Strip (Mobile Only) */}
+      <div className="lg:hidden bg-[#121214] border-y border-white/5 py-3 -mx-5 px-5 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="relative">
+            <div className={`w-2 h-2 rounded-full ${sessionName === 'Market Closed' ? 'bg-rose-500' : 'bg-emerald-500'}`}></div>
+            {sessionName !== 'Market Closed' && (
+              <div className="absolute top-0 left-0 w-2 h-2 rounded-full bg-emerald-500 animate-ping"></div>
+            )}
           </div>
+          <span className="text-xs font-semibold text-slate-300">{sessionName}</span>
+        </div>
+        <span className="text-[10px] text-slate-500 font-mono">{localTime}</span>
+      </div>
 
+      {/* Recent Activity Section */}
+      <div>
+        <div className="flex justify-between items-center mb-6 px-1">
+          <h2 className="text-xl font-bold text-white">Recent Activity</h2>
           <button 
-            onClick={onOpenFeedback}
-            className="flex-shrink-0 px-8 py-5 bg-white text-slate-950 rounded-2xl font-bold shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_60px_rgba(255,255,255,0.2)] hover:bg-slate-50 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center space-x-3 group-hover:ring-4 ring-white/10"
+            onClick={() => onViewChange('signals')}
+            className="flex items-center text-sm text-indigo-400 font-medium hover:text-indigo-300 transition-colors group"
           >
-            <i className="fa-regular fa-paper-plane text-indigo-600 text-xl group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform duration-300"></i>
-            <span className="tracking-tight">Send Feedback</span>
+            View All <ChevronRight size={16} className="ml-1 transition-transform group-hover:translate-x-1" />
           </button>
         </div>
-      </div>
-
-      {/* Credits Section */}
-      <div className="pt-8 flex flex-col items-center justify-center space-y-4">
-        <div className="h-px w-32 bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
-        <div className="text-center group cursor-default">
-          <p className="text-slate-400 font-bold uppercase tracking-[0.3em] text-[10px] mb-2 opacity-70 group-hover:opacity-100 transition-opacity">Exclusive Platform</p>
-          <h3 className="text-xl font-black text-slate-700 tracking-tighter group-hover:text-indigo-600 transition-colors">
-            Developed by Jisan
-          </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {MOCK_SIGNALS.slice(0, 3).map((signal) => (
+            <div 
+              key={signal.id} 
+              className="group matte-card rounded-2xl p-5 flex justify-between items-center hover:border-indigo-500/30 transition-all duration-300 cursor-pointer hover:bg-[#16161a]"
+            >
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center border transition-colors ${
+                  signal.type === 'BUY' 
+                    ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-500 group-hover:bg-emerald-500/10' 
+                    : 'bg-rose-500/5 border-rose-500/20 text-rose-500 group-hover:bg-rose-500/10'
+                }`}>
+                  {signal.type === 'BUY' ? <TrendingUp size={22} /> : <TrendingUp size={22} className="transform scale-y-[-1]" />}
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-base">{signal.pair}</h3>
+                  <p className={`text-[11px] font-bold uppercase tracking-wide mt-0.5 ${
+                     signal.type === 'BUY' ? 'text-emerald-500' : 'text-rose-500'
+                  }`}>
+                    {signal.type}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-slate-400 font-mono mb-2">{signal.timestamp}</div>
+                <div className={`text-[10px] font-bold px-2.5 py-1 rounded-md border inline-block ${
+                  signal.status === 'ACTIVE' 
+                    ? 'border-indigo-500/30 text-indigo-400 bg-indigo-500/5' 
+                    : 'border-slate-700 text-slate-500 bg-slate-800/50'
+                }`}>
+                  {signal.status}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

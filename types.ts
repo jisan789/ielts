@@ -1,49 +1,31 @@
+import React from 'react';
 
-export enum EnglishLevel {
-  BEGINNER = 'Band 4.0 - 5.0',
-  INTERMEDIATE = 'Band 5.5 - 6.5',
-  ADVANCED = 'Band 7.0 - 9.0'
-}
-
-export enum PersonaType {
-  EMMA = 'Emma'
-}
-
-export enum SessionMode {
-  PRACTICE = 'Practice Mode',
-  EXAM = 'Mock Exam Mode'
-}
-
-export type LearningGoal = 'Part 1: General Questions' | 'Part 2: Cue Card' | 'Part 3: Abstract Discussion' | 'Full Mock Test' | 'Vocabulary & Idioms';
-
-export interface UserProfile {
-  name: string;
-  level: EnglishLevel;
-  goals: LearningGoal[];
-  persona: PersonaType;
-  streak: number;
-  lastActive: string;
-}
-
-export interface Correction {
-  original: string;
-  corrected: string;
-  explanation: string;
-}
-
-export interface ChatMessage {
+export interface Signal {
   id: string;
-  role: 'user' | 'model';
-  text: string;
-  timestamp: Date;
-  correction?: Correction;
+  pair: string;
+  type: 'BUY' | 'SELL';
+  entryPrice: number;
+  stopLoss: number;
+  takeProfit: number;
+  status: 'ACTIVE' | 'PENDING';
+  timestamp: string;
 }
 
-export interface SessionReport {
-  summary: string;
-  mistakes: string[];
-  vocabularyTips: string[];
-  newWords: string[];
-  score: number;
-  fluencyScore: number;
+export interface HistoryItem {
+  id: string;
+  date: string;
+  pair: string;
+  type: 'BUY' | 'SELL';
+  entryPrice: number;
+  closePrice: number;
+  pips: number;
+  result: 'WIN' | 'LOSS';
+}
+
+export type ViewState = 'dashboard' | 'signals' | 'profile';
+
+export interface NavItem {
+  id: ViewState;
+  label: string;
+  icon: React.ReactNode;
 }
